@@ -145,7 +145,7 @@ public final class ShutdownThread extends Thread {
                                 }
                             })
                             .create();
-                } else //if (rebootOption == 1) {
+                } else { //if (rebootOption == 1)
                     dialog = new AlertDialog.Builder(context)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(com.android.internal.R.string.reboot_system)
