@@ -69,6 +69,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private static final boolean SHOW_SILENT_TOGGLE = true;
 
+    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot.settings";
+    private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot.settings";
+    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot_option";
+    private static final String SCREENSHOT_OPTION_PROPERTY = "persist.sys.clean.screenshot_option";
+    private static final String REBOOT_OPTION_DEFAULT = "0";
+    private static final String SCREENSHOT_OPTION_DEFAULT = "false";
+
     private final Context mContext;
     private final AudioManager mAudioManager;
 
@@ -77,10 +84,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private SilentModeAction mSilentModeAction;
     private ToggleAction mAirplaneModeOn;
+    private SinglePressAction mRebootAction;
+    private SinglePressAction mScreenshotAction;
 
     private MyAdapter mAdapter;
 
     private boolean mKeyguardShowing = false;
+    private int mRebootOption = 0;
+    private boolean mScreenshotOptionOn = false;
     private boolean mDeviceProvisioned = false;
     private ToggleAction.State mAirplaneState = ToggleAction.State.Off;
     private boolean mIsWaitingForEcmExit = false;
@@ -112,6 +123,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     public void showDialog(boolean keyguardShowing, boolean isDeviceProvisioned) {
         mKeyguardShowing = keyguardShowing;
         mDeviceProvisioned = isDeviceProvisioned;
+        mRebootOption = 0;
+        if (Integer.valueOf(SystemProperties.get(REBOOT_SETTINGS_PROPERTY, "0")) == 1) {
+            mRebootOption = Integer.valueOf(SystemProperties.get(REBOOT_OPTION_PROPERTY, REBOOT_OPTION_DEFAULT));
+        }
+        mScreenshotOptionOn = false;
+        if (Integer.valueOf(SystemProperties.get(SCREENSHOT_SETTINGS_PROPERTY, "0")) == 1) {
+            mScreenshotOptionOn = Boolean.parseBoolean(SystemProperties.get(SCREENSHOT_OPTION_PROPERTY, SCREENSHOT_OPTION_DEFAULT));
+        }
         if (mDialog == null) {
             mDialog = createDialog();
         }
@@ -166,6 +185,58 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             public boolean showBeforeProvisioning() {
                 return false;
             }
+
+            public boolean showWithRebootSettingsOnly() {
+                return false;
+            }
+
+            public boolean showWithScreenshotSettingsOnly() {
+                return false;
+            }
+        };
+
+        mRebootAction = new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
+            public void onPress() {
+                ShutdownThread.reboot(mContext, "null", true);
+            }
+
+            public boolean showDuringKeyguard() {
+                return true;
+            }
+
+            public boolean showBeforeProvisioning() {
+                return true;
+            }
+
+            public boolean showWithRebootSettingsOnly() {
+                return true;
+            }
+
+            public boolean showWithScreenshotSettingsOnly() {
+                return false;
+            }
+        };
+
+        mScreenshotAction = new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
+            public void onPress() {
+                takeScreenshot();
+            }
+
+            public boolean showDuringKeyguard() {
+                return true;
+            }
+
+            public boolean showBeforeProvisioning() {
+                return true;
+            }
+
+            public boolean showWithRebootSettingsOnly() {
+                return false;
+            }
+
+            public boolean showWithScreenshotSettingsOnly() {
+                return true;
+            }
         };
 
         mItems = new ArrayList<Action>();
@@ -188,39 +259,21 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 public boolean showBeforeProvisioning() {
                     return true;
                 }
+
+		        public boolean showWithRebootSettingsOnly() {
+		            return false;
+		        }
+
+		        public boolean showWithScreenshotSettingsOnly() {
+		            return false;
+		        }
             });
 
         // next: reboot
-        mItems.add(
-            new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
-                public void onPress() {
-                    ShutdownThread.reboot(mContext, "null", true);
-                }
-
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
-
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+        mItems.add(mRebootAction);
 
         // next: screenshot
-        mItems.add(
-            new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
-                public void onPress() {
-                    takeScreenshot();
-                }
-
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
-
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+        mItems.add(mScreenshotAction);
 
         // next: airplane mode
         mItems.add(mAirplaneModeOn);
@@ -340,8 +393,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
         }
 
-        mDialog.setTitle(R.string.global_actions);
-
         if (SHOW_SILENT_TOGGLE) {
             IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
             mContext.registerReceiver(mRingerModeReceiver, filter);
@@ -378,6 +429,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             for (int i = 0; i < mItems.size(); i++) {
                 final Action action = mItems.get(i);
 
+                if (mRebootOption < 1 && action.showWithRebootSettingsOnly()) {
+                    continue;
+                }
+                if (!mScreenshotOptionOn && action.showWithScreenshotSettingsOnly()) {
+                    continue;
+                }
                 if (mKeyguardShowing && !action.showDuringKeyguard()) {
                     continue;
                 }
@@ -404,6 +461,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             int filteredPos = 0;
             for (int i = 0; i < mItems.size(); i++) {
                 final Action action = mItems.get(i);
+
+                if (mRebootOption < 1 && action.showWithRebootSettingsOnly()) {
+                    continue;
+                }
+                if (!mScreenshotOptionOn && action.showWithScreenshotSettingsOnly()) {
+                    continue;
+                }
                 if (mKeyguardShowing && !action.showDuringKeyguard()) {
                     continue;
                 }
@@ -447,6 +511,16 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         View create(Context context, View convertView, ViewGroup parent, LayoutInflater inflater);
 
         void onPress();
+
+        /**
+         * @return whether this action should only appear if reboot settings are on
+         */
+        boolean showWithRebootSettingsOnly();
+
+        /**
+         * @return whethre this action should only appear if screenshot settings are on
+         */
+        boolean showWithScreenshotSettingsOnly();
 
         /**
          * @return whether this action should appear in the dialog when the keygaurd
@@ -661,6 +735,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
 
         public void onPress() {
+        }
+
+        public boolean showWithRebootSettingsOnly() {
+            return false;
+        }
+
+        public boolean showWithScreenshotSettingsOnly() {
+            return false;
         }
 
         public boolean showDuringKeyguard() {
