@@ -69,10 +69,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private static final boolean SHOW_SILENT_TOGGLE = true;
 
-    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot.settings";
-    private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot.settings";
-    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot_option";
-    private static final String SCREENSHOT_OPTION_PROPERTY = "persist.sys.clean.screenshot_option";
+    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot";
+    private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot";
+    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot";
+    private static final String SCREENSHOT_OPTION_PROPERTY = "persist.sys.clean.screenshot";
     private static final String REBOOT_OPTION_DEFAULT = "0";
     private static final String SCREENSHOT_OPTION_DEFAULT = "false";
 
