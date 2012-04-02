@@ -63,8 +63,8 @@ public final class ShutdownThread extends Thread {
     
     private static boolean mReboot;
     private static String mRebootReason;
-    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot.settings";
-    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot_option";
+    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot";
+    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot";
     private static final String REBOOT_OPTION_DEFAULT = "0";
 
     // Provides shutdown assurance in case the system_server is killed
