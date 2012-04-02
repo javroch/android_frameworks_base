@@ -63,6 +63,9 @@ public final class ShutdownThread extends Thread {
     
     private static boolean mReboot;
     private static String mRebootReason;
+    private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot.settings";
+    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot_option";
+    private static final String REBOOT_OPTION_DEFAULT = "0";
 
     // Provides shutdown assurance in case the system_server is killed
     public static final String SHUTDOWN_ACTION_PROPERTY = "sys.shutdown.requested";
@@ -107,46 +110,71 @@ public final class ShutdownThread extends Thread {
 
         Log.d(TAG, "Notifying thread to start shutdown longPressBehavior=" + longPressBehavior);
 
+        final boolean rebootSettings = "1".equals(SystemProperties.get(REBOOT_SETTINGS_PROPERTY, ""));
+
         if (confirm) {
             final AlertDialog dialog;
             // Set different dialog message based on whether or not we're rebooting
-            if (mReboot) {
-                dialog = new AlertDialog.Builder(context)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle(com.android.internal.R.string.reboot_system)
-                        .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options, 0, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (which < 0)
-                                    return;
+            if (mReboot && rebootSettings) {
+                final int rebootOption = Integer.valueOf(SystemProperties.get(REBOOT_OPTION_PROPERTY, REBOOT_OPTION_DEFAULT));
+                if (rebootOption == 2) {
+                    dialog = new AlertDialog.Builder(context)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle(com.android.internal.R.string.reboot_system)
+                            .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options, 0, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which < 0)
+                                        return;
 
-                                String actions[] = context.getResources().getStringArray(com.android.internal.R.array.shutdown_reboot_actions);
+                                    String actions[] = context.getResources().getStringArray(com.android.internal.R.array.shutdown_reboot_actions);
 
-                                if (actions != null && which < actions.length)
-                                    mRebootReason = actions[which];
-                            }
-                        })
-                        .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                mReboot = true;
-                                beginShutdownSequence(context);
-                            }
-                        })
-                        .setNegativeButton(com.android.internal.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                mReboot = false;
-                                dialog.cancel();
-                            }
-                        })
-                        .create();
-                        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                            public boolean onKey (DialogInterface dialog, int keyCode, KeyEvent event) {
-                                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                    if (actions != null && which < actions.length)
+                                        mRebootReason = actions[which];
+                                }
+                            })
+                            .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mReboot = true;
+                                    beginShutdownSequence(context);
+                                }
+                            })
+                            .setNegativeButton(com.android.internal.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     mReboot = false;
                                     dialog.cancel();
                                 }
-                                return true;
-                            }
-                        });
+                            })
+                            .create();
+                } else //if (rebootOption == 1) {
+                    dialog = new AlertDialog.Builder(context)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle(com.android.internal.R.string.reboot_system)
+                            .setMessage(com.android.internal.R.string.reboot_confirm)
+                            .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mReboot = true;
+                                    beginShutdownSequence(context);
+                                }
+                            })
+                            .setNegativeButton(com.android.internal.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mReboot = false;
+                                    dialog.cancel();
+                                }
+                            })
+                            .create();
+                }
+
+                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                    public boolean onKey (DialogInterface dialog, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            mReboot = false;
+                            dialog.cancel();
+                        }
+                        return true;
+                    }
+                });
+
                 // Initialize to the first reason
                 String actions[] = context.getResources().getStringArray(com.android.internal.R.array.shutdown_reboot_actions);
                 mRebootReason = actions[0];
