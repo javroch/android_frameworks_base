@@ -73,8 +73,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot";
     private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot";
     private static final String SCREENSHOT_OPTION_PROPERTY = "persist.sys.clean.screenshot";
-    private static final String REBOOT_OPTION_DEFAULT = "0";
-    private static final String SCREENSHOT_OPTION_DEFAULT = "false";
+    private static final String REBOOT_OPTION_DEFAULT = "1";
+    private static final String SCREENSHOT_OPTION_DEFAULT = "true";
 
     private final Context mContext;
     private final AudioManager mAudioManager;
