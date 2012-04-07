@@ -71,10 +71,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot";
     private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot";
-    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot";
-    private static final String SCREENSHOT_OPTION_PROPERTY = "persist.sys.clean.screenshot";
-    private static final String REBOOT_OPTION_DEFAULT = "1";
-    private static final String SCREENSHOT_OPTION_DEFAULT = "true";
+    private static final String REBOOT_OPTION_KEY = Settings.System.REBOOT_OPTION;
+    private static final String SCREENSHOT_OPTION_KEY = Settings.System.SCREENSHOT_OPTION;
+    private static final int REBOOT_OPTION_DEFAULT = 1;
+    private static final int SCREENSHOT_OPTION_DEFAULT = 1;
 
     private final Context mContext;
     private final AudioManager mAudioManager;
@@ -125,11 +125,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         mDeviceProvisioned = isDeviceProvisioned;
         mRebootOption = 0;
         if (Integer.valueOf(SystemProperties.get(REBOOT_SETTINGS_PROPERTY, "0")) == 1) {
-            mRebootOption = Integer.valueOf(SystemProperties.get(REBOOT_OPTION_PROPERTY, REBOOT_OPTION_DEFAULT));
+            mRebootOption = Settings.System.getInt(mContext.getContentResolver(), REBOOT_OPTION_KEY, REBOOT_OPTION_DEFAULT);
         }
         mScreenshotOptionOn = false;
         if (Integer.valueOf(SystemProperties.get(SCREENSHOT_SETTINGS_PROPERTY, "0")) == 1) {
-            mScreenshotOptionOn = Boolean.parseBoolean(SystemProperties.get(SCREENSHOT_OPTION_PROPERTY, SCREENSHOT_OPTION_DEFAULT));
+            mScreenshotOptionOn = Settings.System.getInt(mContext.getContentResolver(), SCREENSHOT_OPTION_KEY, SCREENSHOT_OPTION_DEFAULT) == 1;
         }
         if (mDialog == null) {
             mDialog = createDialog();

@@ -1882,6 +1882,28 @@ public final class Settings {
          * @hide
          */
         public static final String POINTER_SPEED = "pointer_speed";
+        
+        /**
+         * Reboot option setting.
+         * 	0 = off
+         * 	1 = button
+         * 	2 = menu
+         */
+        public static final String REBOOT_OPTION = "reboot_option";
+        
+        /**
+         * Screenshot option setting.
+         * 	0 = off
+         * 	1 = button
+         */
+        public static final String SCREENSHOT_OPTION = "screenshot_option";
+        
+        /**
+         * Battery percentage setting.
+         * 	0 = off
+         * 	1 = on
+         */
+        public static final String STATUS_BAR_BATTERY = "status_bar_battery";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
