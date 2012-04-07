@@ -19,11 +19,15 @@ package com.android.systemui.statusbar.policy;
 import java.util.ArrayList;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.os.BatteryManager;
-import android.util.Slog;
+import android.os.Handler;
+import android.os.SystemProperties;
+import android.provider.Settings;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,9 +39,41 @@ public class BatteryController extends BroadcastReceiver {
     private Context mContext;
     private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
     private ArrayList<TextView> mLabelViews = new ArrayList<TextView>();
+    
+    private static final String STATUS_BAR_BATTERY_KEY = Settings.System.STATUS_BAR_BATTERY;
+    private static final int STATUS_BAR_BATTERY_DEFAULT = 1;
+    private static final String STATUS_BAR_BATTERY_SETTINGS_PROPERTY = "ro.clean.batt_percent";
+    
+    private Handler mHandler;
+    
+    class SettingsObserver extends ContentObserver {
+    	SettingsObserver(Handler handler) {
+    		super(handler);
+    	}
+    	
+    	void observe() {
+    		ContentResolver resolver = mContext.getContentResolver();
+			resolver.registerContentObserver(
+				Settings.System.getUriFor(Settings.System.STATUS_BAR_BATTERY),
+				false,
+				this);
+    	}
+    	
+    	@Override
+    	public void onChange(boolean selfChange) {
+    		updateTextVisibility();
+    	}
+    }
 
     public BatteryController(Context context) {
         mContext = context;
+        
+        if ("1".equals(SystemProperties.get(STATUS_BAR_BATTERY_SETTINGS_PROPERTY, ""))) {
+	        mHandler = new Handler();
+	        
+	        SettingsObserver settingsObserver = new SettingsObserver(mHandler);
+	        settingsObserver.observe();
+        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -67,6 +103,9 @@ public class BatteryController extends BroadcastReceiver {
                 v.setContentDescription(mContext.getString(R.string.accessibility_battery_level,
                         level));
             }
+            
+            updateTextVisibility();
+            
             N = mLabelViews.size();
             for (int i=0; i<N; i++) {
                 TextView v = mLabelViews.get(i);
@@ -75,4 +114,15 @@ public class BatteryController extends BroadcastReceiver {
             }
         }
     }
+    
+    private void updateTextVisibility() {
+    	Boolean visible = "1".equals(SystemProperties.get(STATUS_BAR_BATTERY_SETTINGS_PROPERTY, ""))
+    		&& Settings.System.getInt(mContext.getContentResolver(), STATUS_BAR_BATTERY_KEY, STATUS_BAR_BATTERY_DEFAULT) == 1;
+    	
+		int N = mLabelViews.size();
+		for (int i=0; i<N; i++) {
+			TextView v = mLabelViews.get(i);
+			v.setVisibility(visible ? TextView.VISIBLE : TextView.GONE);
+		}
+	}
 }

@@ -39,6 +39,7 @@ import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
+import android.provider.Settings;
 
 import com.android.internal.telephony.ITelephony;
 import android.util.Log;
@@ -64,8 +65,8 @@ public final class ShutdownThread extends Thread {
     private static boolean mReboot;
     private static String mRebootReason;
     private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot";
-    private static final String REBOOT_OPTION_PROPERTY = "persist.sys.clean.reboot";
-    private static final String REBOOT_OPTION_DEFAULT = "1";
+    private static final String REBOOT_OPTION_KEY = Settings.System.REBOOT_OPTION;
+    private static final int REBOOT_OPTION_DEFAULT = 1;
 
     // Provides shutdown assurance in case the system_server is killed
     public static final String SHUTDOWN_ACTION_PROPERTY = "sys.shutdown.requested";
@@ -116,7 +117,7 @@ public final class ShutdownThread extends Thread {
             final AlertDialog dialog;
             // Set different dialog message based on whether or not we're rebooting
             if (mReboot && rebootSettings) {
-                final int rebootOption = Integer.valueOf(SystemProperties.get(REBOOT_OPTION_PROPERTY, REBOOT_OPTION_DEFAULT));
+                final int rebootOption = Settings.System.getInt(context.getContentResolver(), REBOOT_OPTION_KEY, REBOOT_OPTION_DEFAULT);
                 if (rebootOption == 2) {
                     dialog = new AlertDialog.Builder(context)
                             .setIcon(android.R.drawable.ic_dialog_alert)
