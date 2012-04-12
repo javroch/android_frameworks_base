@@ -1904,6 +1904,16 @@ public final class Settings {
          * 	1 = on
          */
         public static final String STATUS_BAR_BATTERY = "status_bar_battery";
+        
+        /**
+         * Launcher2 default number of home screens.
+         * 1
+         * 3
+         * 5
+         * 7
+         * 9
+         */
+        public static final String LAUNCHER_SCREEN_COUNT = "launcher_screen_count";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
