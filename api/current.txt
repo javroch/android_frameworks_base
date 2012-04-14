@@ -16351,7 +16351,6 @@ package android.provider {
   }
 
   protected static abstract interface ContactsContract.BaseSyncColumns {
-    field public static final java.lang.String IS_RESTRICTED = "is_restricted";
     field public static final java.lang.String SYNC1 = "sync1";
     field public static final java.lang.String SYNC2 = "sync2";
     field public static final java.lang.String SYNC3 = "sync3";
@@ -17545,7 +17544,6 @@ package android.provider {
     field public static final java.lang.String HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled";
     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
-    field public static final java.lang.String LAUNCHER_SCREEN_COUNT = "launcher_screen_count";
     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
     field public static final deprecated java.lang.String LOCK_PATTERN_ENABLED = "lock_pattern_autolock";
     field public static final deprecated java.lang.String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
