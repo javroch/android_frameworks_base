@@ -1931,6 +1931,15 @@ public final class Settings {
          * @hide
          */
         public static final String AIRPLANE_MODE_OPTION = "airplane_mode_option";
+        
+        /**
+         * Silent mode option setting
+         * 	0 = off
+         * 	1 = button
+         * 
+         * @hide
+         */
+        public static final String SILENT_MODE_OPTION = "silent_mode_option";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
