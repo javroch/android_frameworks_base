@@ -1888,6 +1888,8 @@ public final class Settings {
          * 	0 = off
          * 	1 = button
          * 	2 = menu
+         * 
+         * @hide
          */
         public static final String REBOOT_OPTION = "reboot_option";
         
@@ -1895,6 +1897,8 @@ public final class Settings {
          * Screenshot option setting.
          * 	0 = off
          * 	1 = button
+         * 
+         * @hide
          */
         public static final String SCREENSHOT_OPTION = "screenshot_option";
         
@@ -1902,6 +1906,8 @@ public final class Settings {
          * Battery percentage setting.
          * 	0 = off
          * 	1 = on
+         * 
+         * @hide
          */
         public static final String STATUS_BAR_BATTERY = "status_bar_battery";
         
@@ -1912,8 +1918,19 @@ public final class Settings {
          * 5
          * 7
          * 9
+         * 
+         * @hide
          */
         public static final String LAUNCHER_SCREEN_COUNT = "launcher_screen_count";
+        
+        /**
+         * Airplane mode option setting.
+         * 	0 = off
+         * 	1 = button
+         * 
+         * @hide
+         */
+        public static final String AIRPLANE_MODE_OPTION = "airplane_mode_option";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

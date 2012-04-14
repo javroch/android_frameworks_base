@@ -71,10 +71,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private static final String REBOOT_SETTINGS_PROPERTY = "ro.clean.reboot";
     private static final String SCREENSHOT_SETTINGS_PROPERTY = "ro.clean.screenshot";
+    private static final String AIRPLANE_MODE_SETTINGS_PROPERTY = "ro.clean.airplane_mode";
     private static final String REBOOT_OPTION_KEY = Settings.System.REBOOT_OPTION;
     private static final String SCREENSHOT_OPTION_KEY = Settings.System.SCREENSHOT_OPTION;
+    private static final String AIRPLANE_MODE_OPTION_KEY = Settings.System.AIRPLANE_MODE_OPTION;
     private static final int REBOOT_OPTION_DEFAULT = 1;
     private static final int SCREENSHOT_OPTION_DEFAULT = 1;
+    private static final int AIRPLANE_MODE_OPTION_DEFAULT = 1;
 
     private final Context mContext;
     private final AudioManager mAudioManager;
@@ -92,6 +95,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mKeyguardShowing = false;
     private int mRebootOption = 0;
     private boolean mScreenshotOptionOn = false;
+    private boolean mAirplaneModeOptionOn = false;
     private boolean mDeviceProvisioned = false;
     private ToggleAction.State mAirplaneState = ToggleAction.State.Off;
     private boolean mIsWaitingForEcmExit = false;
@@ -130,6 +134,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         mScreenshotOptionOn = false;
         if (Integer.valueOf(SystemProperties.get(SCREENSHOT_SETTINGS_PROPERTY, "0")) == 1) {
             mScreenshotOptionOn = Settings.System.getInt(mContext.getContentResolver(), SCREENSHOT_OPTION_KEY, SCREENSHOT_OPTION_DEFAULT) == 1;
+        }
+        mAirplaneModeOptionOn = true; //on by default / in AOSP unlike the others
+        if (Integer.valueOf(SystemProperties.get(AIRPLANE_MODE_SETTINGS_PROPERTY, "0")) == 1) {
+        	mAirplaneModeOptionOn = Settings.System.getInt(mContext.getContentResolver(), AIRPLANE_MODE_OPTION_KEY, AIRPLANE_MODE_OPTION_DEFAULT) == 1;
         }
         if (mDialog == null) {
             mDialog = createDialog();
@@ -193,6 +201,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             public boolean showWithScreenshotSettingsOnly() {
                 return false;
             }
+            
+            public boolean showWithAirplaneModeSettingsOnly() {
+            	return true;
+            }
         };
 
         mRebootAction = new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
@@ -215,6 +227,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             public boolean showWithScreenshotSettingsOnly() {
                 return false;
             }
+            
+            public boolean showWithAirplaneModeSettingsOnly() {
+            	return false;
+            }
         };
 
         mScreenshotAction = new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
@@ -236,6 +252,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
             public boolean showWithScreenshotSettingsOnly() {
                 return true;
+            }
+            
+            public boolean showWithAirplaneModeSettingsOnly() {
+            	return false;
             }
         };
 
@@ -267,6 +287,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 		        public boolean showWithScreenshotSettingsOnly() {
 		            return false;
 		        }
+	            
+	            public boolean showWithAirplaneModeSettingsOnly() {
+	            	return false;
+	            }
             });
 
         // next: reboot
@@ -429,6 +453,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             for (int i = 0; i < mItems.size(); i++) {
                 final Action action = mItems.get(i);
 
+                if (!mAirplaneModeOptionOn && action.showWithAirplaneModeSettingsOnly()) {
+                	continue;
+                }
                 if (mRebootOption < 1 && action.showWithRebootSettingsOnly()) {
                     continue;
                 }
@@ -462,6 +489,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             for (int i = 0; i < mItems.size(); i++) {
                 final Action action = mItems.get(i);
 
+                if (!mAirplaneModeOptionOn && action.showWithAirplaneModeSettingsOnly()) {
+                	continue;
+                }
                 if (mRebootOption < 1 && action.showWithRebootSettingsOnly()) {
                     continue;
                 }
@@ -511,6 +541,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         View create(Context context, View convertView, ViewGroup parent, LayoutInflater inflater);
 
         void onPress();
+        
+        /**
+         * @return whether this action should only appear if airplane mode settings are on
+         */
+        boolean showWithAirplaneModeSettingsOnly();
 
         /**
          * @return whether this action should only appear if reboot settings are on
@@ -742,6 +777,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
 
         public boolean showWithScreenshotSettingsOnly() {
+            return false;
+        }
+
+        public boolean showWithAirplaneModeSettingsOnly() {
             return false;
         }
 
